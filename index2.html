@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Usta Dönerci Tycoon - Mobile Fix</title>
+    <title>Usta Dönerci Tycoon - Fullscreen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -35,13 +35,18 @@
         .ing-btn { transition: all 0.1s; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
 
         /* --- KRİTİK MOBİL DÜZELTMESİ --- */
-        /* iOS ve Android alt bar güvenli alanı */
+        /* iOS ve Android alt bar güvenli alanı - Biraz daha artırıldı */
         .pb-safe-area {
-            padding-bottom: calc(env(safe-area-inset-bottom) + 20px); /* Sistem barı + 20px ekstra boşluk */
+            padding-bottom: calc(env(safe-area-inset-bottom) + 30px); 
+        }
+        /* Tam ekranda ekranın tamamen dolmasını sağlar */
+        html, body {
+            height: 100%;
+            height: 100dvh; /* Dynamic Viewport Height */
         }
     </style>
 </head>
-<body class="bg-slate-100 h-[100dvh] overflow-hidden flex flex-col text-gray-800">
+<body class="bg-slate-100 h-full overflow-hidden flex flex-col text-gray-800">
 
     <!-- GİRİŞ EKRANI -->
     <div id="menu-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-amber-50 p-4">
@@ -59,6 +64,7 @@
             <button onclick="startGame()" class="w-full bg-green-500 active:bg-green-600 text-white text-xl font-black py-4 rounded-2xl shadow-[0_6px_0_#15803d] active:shadow-none active:translate-y-[6px] transition-all flex items-center justify-center gap-3">
                 <i data-lucide="play" class="fill-current"></i> DÜKKANI AÇ
             </button>
+            <p class="text-xs text-gray-400 mt-4">Oyun tam ekran açılacaktır.</p>
         </div>
     </div>
 
@@ -130,7 +136,7 @@
                 </div>
             </div>
             
-            <!-- Aksiyon Butonları (Alt bar ile çakışmaması için margin-bottom eklendi) -->
+            <!-- Aksiyon Butonları -->
             <div class="absolute bottom-4 w-full px-4 flex justify-between items-center gap-3 max-w-md">
                 <button onclick="trashBench()" class="bg-white hover:bg-red-50 text-red-500 p-4 rounded-2xl shadow-[0_4px_0_#e5e7eb] active:shadow-none active:translate-y-[4px] transition-all border border-gray-100">
                     <i data-lucide="trash-2" class="w-6 h-6"></i>
@@ -145,8 +151,8 @@
         </div>
     </div>
 
-    <!-- ALT: MALZEME PALETİ (GÜVENLİ ALAN DÜZELTMELİ) -->
-    <!-- pb-safe-area sınıfı burada hayati önem taşıyor -->
+    <!-- ALT: MALZEME PALETİ -->
+    <!-- pb-safe-area sınıfı ile alttan ekstra boşluk bırakıldı -->
     <div class="flex-none bg-white p-3 border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-30 overflow-x-auto no-scrollbar pb-safe-area">
         <div id="ingredients-container" class="flex gap-3 min-w-max px-1 h-[100px] items-center"></div>
     </div>
@@ -185,7 +191,6 @@
             sauce: { id: 'sauce', name: 'Özel Sos', svg: SVGS.sauce, type: 'sauce', border: 'border-orange-200' },
         };
 
-        // --- MÜŞTERİ TİPLERİ (Komik & Gerçekçi) ---
         const CUSTOMER_TYPES = [
             { 
                 name: 'Öğrenci', 
@@ -297,7 +302,22 @@
             return true;
         }
 
+        // --- FULLSCREEN FONKSİYONU ---
+        function openFullscreen() {
+            var elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log("Fullscreen engellendi:", err));
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
         function startGame() {
+            // Oyunu başlatırken Tam Ekran yap
+            openFullscreen();
+            
             document.getElementById('menu-screen').style.display = 'none';
             state.isPlaying = true; state.money = 0; state.level = 1;
             renderIngredients(); nextCustomer(); updateUI();
