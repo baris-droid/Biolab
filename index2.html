@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Usta Dönerci Tycoon - Fullscreen</title>
+    
+    <!-- iOS Tam Ekran ve Web App Ayarları -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f8fafc">
+    
+    <title>Usta Dönerci Tycoon - Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -15,6 +21,7 @@
             user-select: none; 
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior: none;
+            touch-action: manipulation;
         }
         
         .pattern-cubes { background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
@@ -35,14 +42,17 @@
         .ing-btn { transition: all 0.1s; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
 
         /* --- KRİTİK MOBİL DÜZELTMESİ --- */
-        /* iOS ve Android alt bar güvenli alanı - Biraz daha artırıldı */
+        /* iOS ve Android alt bar güvenli alanı */
         .pb-safe-area {
             padding-bottom: calc(env(safe-area-inset-bottom) + 30px); 
+        }
+        .pt-safe-top {
+            padding-top: max(10px, env(safe-area-inset-top));
         }
         /* Tam ekranda ekranın tamamen dolmasını sağlar */
         html, body {
             height: 100%;
-            height: 100dvh; /* Dynamic Viewport Height */
+            height: 100dvh; /* Dynamic Viewport Height desteği */
         }
     </style>
 </head>
@@ -64,7 +74,7 @@
             <button onclick="startGame()" class="w-full bg-green-500 active:bg-green-600 text-white text-xl font-black py-4 rounded-2xl shadow-[0_6px_0_#15803d] active:shadow-none active:translate-y-[6px] transition-all flex items-center justify-center gap-3">
                 <i data-lucide="play" class="fill-current"></i> DÜKKANI AÇ
             </button>
-            <p class="text-xs text-gray-400 mt-4">Oyun tam ekran açılacaktır.</p>
+            <p class="text-xs text-gray-400 mt-4">Otomatik tam ekran modu</p>
         </div>
     </div>
 
@@ -77,7 +87,8 @@
                 <div class="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-xl font-black shadow-inner border border-green-200">
                     <span class="text-lg">₺</span> <span id="money-display" class="text-xl">0</span>
                 </div>
-                <button onclick="toggleShop(true)" class="flex items-center gap-2 bg-violet-100 text-violet-700 px-3 py-2 rounded-xl font-bold border border-violet-200 hover:bg-violet-200 transition-colors">
+                <!-- Market Butonu -->
+                <button onclick="toggleShop(true)" class="flex items-center gap-2 bg-violet-100 text-violet-700 px-3 py-2 rounded-xl font-bold border border-violet-200 hover:bg-violet-200 transition-colors active:scale-95">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -107,7 +118,7 @@
             <!-- Ateş Efekti -->
             <div class="w-full h-32 bg-gradient-to-t from-orange-600 via-red-600 to-transparent opacity-80 animate-pulse absolute bottom-[80px] pointer-events-none z-0 blur-sm"></div>
             
-            <!-- KES BUTONU (Biraz yukarı taşındı) -->
+            <!-- KES BUTONU -->
             <button onpointerdown="cutMeat()" class="absolute bottom-8 w-[90%] bg-gradient-to-b from-red-500 to-red-700 active:from-red-700 active:to-red-800 text-white font-black text-lg py-4 rounded-xl shadow-[0_4px_0_#7f1d1d] active:shadow-none active:translate-y-[4px] transition-all z-20 flex items-center justify-center gap-2 border-2 border-red-800">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 21V8a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v13"/><path d="M12 10v4"/></svg> KES
             </button>
@@ -152,7 +163,6 @@
     </div>
 
     <!-- ALT: MALZEME PALETİ -->
-    <!-- pb-safe-area sınıfı ile alttan ekstra boşluk bırakıldı -->
     <div class="flex-none bg-white p-3 border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-30 overflow-x-auto no-scrollbar pb-safe-area">
         <div id="ingredients-container" class="flex gap-3 min-w-max px-1 h-[100px] items-center"></div>
     </div>
@@ -169,6 +179,7 @@
     </div>
 
     <script>
+        // --- SVG KÜTÜPHANESİ ---
         const SVGS = {
             bread: `<svg viewBox="0 0 100 60" class="w-full h-full drop-shadow-md"><path d="M10 30 Q10 5 50 5 Q90 5 90 30 Q90 55 50 55 Q10 55 10 30" fill="#F59E0B" stroke="#D97706" stroke-width="2"/><path d="M20 20 Q50 15 80 20" fill="none" stroke="#FCD34D" stroke-width="3" stroke-linecap="round"/></svg>`,
             lavash: `<svg viewBox="0 0 100 60" class="w-full h-full drop-shadow-md"><rect x="10" y="15" width="80" height="30" rx="5" fill="#FEF3C7" stroke="#D97706" stroke-width="1"/><path d="M15 15 Q20 25 15 45" fill="none" stroke="#D97706" stroke-width="1" opacity="0.5"/><path d="M85 15 Q80 25 85 45" fill="none" stroke="#D97706" stroke-width="1" opacity="0.5"/></svg>`,
@@ -192,56 +203,11 @@
         };
 
         const CUSTOMER_TYPES = [
-            { 
-                name: 'Öğrenci', 
-                phrases: [
-                    'Abi şunun içini ağlat be! (Bol Sos)', 
-                    'KYK yattı, gömüyoruz.', 
-                    'Usta ekmeği yağa ban, ölmeyiz.',
-                    'Abi etleri cımbızla mı koydun?'
-                ], 
-                impatience: 1.2 
-            },
-            { 
-                name: 'Esnaf Abi', 
-                phrases: [
-                    'Müdür, soğanı bas mikrop kırılsın.', 
-                    'Yandaki dükkana paket, acele et.', 
-                    'Çayı koydum, döneri bekliyorum.',
-                    'Hayırlı işler, eti kurutma ha!'
-                ], 
-                impatience: 1.0 
-            },
-            { 
-                name: 'Plazacı Merve', 
-                phrases: [
-                    'Toplantım var, soğan ASLA!', 
-                    'Multinet geçiyor mu usta?', 
-                    'Wrap şeklinde alabilir miyim?',
-                    'Az yağlı olsun, diyetteyim.'
-                ], 
-                impatience: 1.6 
-            },
-            { 
-                name: 'Semt Oturuşu', 
-                phrases: [
-                    'Bize şöyle atom yap, kendimize gelelim.', 
-                    'Acıyı bas, yarına çıkmayalım.', 
-                    'Usta ateş seni çağırıyor!',
-                    'Yapıştır gelsin aslan parçası.'
-                ], 
-                impatience: 1.1 
-            },
-            { 
-                name: 'Sporcu', 
-                phrases: [
-                    'Ekmeğin içini al, karbo basma.', 
-                    'Sadece protein usta, bas eti.', 
-                    'Antrenman var, enerjisiz kaldık.',
-                    'Yağsız tarafından kesebilir misin?'
-                ], 
-                impatience: 1.3 
-            }
+            { name: 'Öğrenci', phrases: ['Abi şunun içini ağlat be!', 'KYK yattı, gömüyoruz.', 'Usta ekmeği yağa ban, ölmeyiz.', 'Abi etleri cımbızla mı koydun?'], impatience: 1.2 },
+            { name: 'Esnaf Abi', phrases: ['Müdür, soğanı bas mikrop kırılsın.', 'Yandaki dükkana paket, acele et.', 'Çayı koydum, döneri bekliyorum.', 'Hayırlı işler, eti kurutma ha!'], impatience: 1.0 },
+            { name: 'Plazacı Merve', phrases: ['Toplantım var, soğan ASLA!', 'Multinet geçiyor mu usta?', 'Wrap şeklinde alabilir miyim?', 'Az yağlı olsun, diyetteyim.'], impatience: 1.6 },
+            { name: 'Semt Oturuşu', phrases: ['Bize şöyle atom yap, kendimize gelelim.', 'Acıyı bas, yarına çıkmayalım.', 'Usta ateş seni çağırıyor!', 'Yapıştır gelsin aslan parçası.'], impatience: 1.1 },
+            { name: 'Sporcu', phrases: ['Ekmeğin içini al, karbo basma.', 'Sadece protein usta, bas eti.', 'Antrenman var, enerjisiz kaldık.', 'Yağsız tarafından kesebilir misin?'], impatience: 1.3 }
         ];
 
         const UPGRADES = {
@@ -259,12 +225,17 @@
             upgrades: { knife: 0, chair: 0, sign: 0, storage: 0 }
         };
 
+        // --- HELPERS ---
         function getUpgradeValue(type, level) {
             if (type === 'knife') return 1 + (level * 1);
             if (type === 'chair') return 1 + (level * 0.10);
             if (type === 'sign') return 1 + (level * 0.15);
             if (type === 'storage') return 10 + (level * 5);
             return 0;
+        }
+        
+        function getUpgradeCost(baseCost, multiplier, level) {
+             return Math.floor(baseCost * Math.pow(multiplier, level));
         }
 
         function generateOrder() {
@@ -302,25 +273,25 @@
             return true;
         }
 
-        // --- FULLSCREEN FONKSİYONU ---
+        // --- GÜVENLİ FULLSCREEN FONKSİYONU ---
         function openFullscreen() {
-            var elem = document.documentElement;
+            const elem = document.documentElement;
             if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => console.log("Fullscreen engellendi:", err));
+                elem.requestFullscreen().catch(err => console.log("FS Engellendi:", err));
             } else if (elem.webkitRequestFullscreen) { /* Safari */
                 elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
-                elem.msRequestFullscreen();
             }
         }
 
         function startGame() {
-            // Oyunu başlatırken Tam Ekran yap
-            openFullscreen();
-            
-            document.getElementById('menu-screen').style.display = 'none';
-            state.isPlaying = true; state.money = 0; state.level = 1;
-            renderIngredients(); nextCustomer(); updateUI();
+            try {
+                document.getElementById('menu-screen').style.display = 'none';
+                state.isPlaying = true; state.money = 0; state.level = 1;
+                renderIngredients(); nextCustomer(); updateUI();
+                try { openFullscreen(); } catch(e) { console.log("FS Hatası"); }
+            } catch (error) {
+                alert("Bir hata oluştu, sayfayı yenileyin.");
+            }
         }
 
         function nextCustomer() {
@@ -389,7 +360,31 @@
         function trashBench() { state.benchBase = null; state.benchItems = []; renderBench(); updateUI(); }
         function serveOrder() { if (!state.currentOrder) return; checkOrder() ? handleOrderResult(true, "Afiyet Olsun!") : handleOrderResult(false, "Yanlış Sipariş!"); }
         function buyTea() { if (state.money >= 20) { state.money -= 20; state.timeLeft += 15; showFeedback('success', 'Çay İkram Edildi'); updateTimerUI(); updateUI(); } else { showFeedback('error', 'Para Yok'); } }
-        function toggleShop(isOpen) { state.shopOpen = isOpen; const modal = document.getElementById('shop-modal'); if (isOpen) { renderShopItems(); modal.classList.remove('hidden'); } else { modal.classList.add('hidden'); } }
+        
+        // --- GÜVENLİ MARKET SİSTEMİ (Donma Önleyici) ---
+        function toggleShop(isOpen) {
+            const modal = document.getElementById('shop-modal');
+            if (isOpen) {
+                try {
+                    // 1. Önce içeriği oluşturmayı dene
+                    renderShopItems(); 
+                    // 2. Hata yoksa pencereyi göster
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    // 3. En son oyunu durdur (Böylece hata olursa oyun donmaz)
+                    state.shopOpen = true; 
+                } catch (error) {
+                    console.error("Market açılış hatası:", error);
+                    state.shopOpen = false; // Oyunu devam ettir
+                    modal.classList.add('hidden');
+                    showFeedback('error', 'Market Yüklenemedi!');
+                }
+            } else {
+                state.shopOpen = false;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
         
         function buyUpgrade(type) {
             const upg = UPGRADES[type]; const level = state.upgrades[type];
@@ -405,7 +400,9 @@
             const el = document.getElementById('feedback-popup');
             el.innerHTML = type === 'success' ? `<span class="flex items-center gap-2"><i data-lucide="check-circle"></i> ${msg}</span>` : `<span class="flex items-center gap-2"><i data-lucide="x-circle"></i> ${msg}</span>`;
             el.className = `absolute top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl shadow-2xl text-white font-black text-lg whitespace-nowrap z-50 animate-pop ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`;
-            el.classList.remove('hidden'); lucide.createIcons(); setTimeout(() => el.classList.add('hidden'), 1500);
+            el.classList.remove('hidden'); 
+            if(typeof lucide !== 'undefined') lucide.createIcons(); 
+            setTimeout(() => el.classList.add('hidden'), 1500);
         }
 
         function updateUI() {
@@ -427,13 +424,18 @@
             if (state.timeLeft < 10) container.classList.add('text-red-600', 'bg-red-50', 'border-red-200', 'animate-pulse');
             else container.classList.remove('text-red-600', 'bg-red-50', 'border-red-200', 'animate-pulse');
             if (state.timeLeft < 15 && state.currentOrder) {
-                teaBtn.innerHTML = `<button onclick="buyTea()" class="bg-amber-600 text-white text-xs px-2 py-1 rounded-lg shadow hover:bg-amber-700 flex items-center gap-1 animate-bounce font-bold"><i data-lucide="coffee" class="w-3 h-3"></i> -20₺</button>`; lucide.createIcons();
+                teaBtn.innerHTML = `<button onclick="buyTea()" class="bg-amber-600 text-white text-xs px-2 py-1 rounded-lg shadow hover:bg-amber-700 flex items-center gap-1 animate-bounce font-bold"><i data-lucide="coffee" class="w-3 h-3"></i> -20₺</button>`; 
+                if(typeof lucide !== 'undefined') lucide.createIcons();
             } else { teaBtn.innerHTML = ''; }
         }
 
         function renderBench() {
             const area = document.getElementById('bench-area');
-            if (!state.benchBase) { area.innerHTML = `<div class="w-64 h-40 border-4 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center text-gray-400 bg-gray-50/50"><i data-lucide="utensils" class="w-8 h-8 mb-2 opacity-50"></i><span class="font-bold">TEZGAH BOŞ</span><span class="text-xs">Aşağıdan Ekmek Seç</span></div>`; lucide.createIcons(); return; }
+            if (!state.benchBase) { 
+                area.innerHTML = `<div class="w-64 h-40 border-4 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center text-gray-400 bg-gray-50/50"><i data-lucide="utensils" class="w-8 h-8 mb-2 opacity-50"></i><span class="font-bold">TEZGAH BOŞ</span><span class="text-xs">Aşağıdan Ekmek Seç</span></div>`; 
+                if(typeof lucide !== 'undefined') lucide.createIcons(); 
+                return; 
+            }
             const isLavash = state.benchBase.id === 'lavash';
             const baseClass = isLavash ? 'w-32 h-[240px] rounded-full flex-col' : 'w-[280px] h-[140px] rounded-[3rem] flex-row';
             let contentHTML = state.benchItems.map((item, idx) => `<div class="relative w-12 h-12 -ml-4 hover:z-10 hover:scale-110 transition-transform drop-shadow-md" style="z-index:${idx}; margin-top: ${isLavash ? '-20px' : '0'}; margin-left: ${isLavash ? '0' : '-20px'}">${item.svg}</div>`).join('');
@@ -471,10 +473,14 @@
                 const isMax = lvl >= upg.maxLevel; const canBuy = state.money >= cost && !isMax;
                 html += `<div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500"><i data-lucide="${upg.icon}"></i></div><div class="flex-1"><div class="flex justify-between items-center"><h3 class="font-bold text-gray-800">${upg.name}</h3><div class="flex gap-0.5">${[...Array(5)].map((_,i) => `<div class="w-1.5 h-4 rounded-full ${i < lvl ? 'bg-green-500' : 'bg-gray-200'}"></div>`).join('')}</div></div><p class="text-xs text-gray-500">${upg.desc}</p></div><button onclick="buyUpgrade('${key}')" disabled="${!canBuy}" class="px-4 py-2 rounded-xl font-bold text-sm transition-all ${canBuy ? 'bg-green-500 text-white shadow-[0_3px_0_#15803d] active:translate-y-[3px] active:shadow-none' : 'bg-gray-100 text-gray-400'}">${isMax ? 'MAX' : cost + '₺'}</button></div>`;
             }
-            container.innerHTML = html; lucide.createIcons();
+            container.innerHTML = html; 
+            if(typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        lucide.createIcons();
+        // Güvenli başlatma
+        window.onload = function() {
+            if(typeof lucide !== 'undefined') lucide.createIcons();
+        }
     </script>
 </body>
 </html>
